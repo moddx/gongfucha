@@ -1,0 +1,90 @@
+<mat-drawer-container [hasBackdrop]="false" autosize style="background-color: white;">
+  <mat-drawer #drawer mode="push">
+    <div class="pad-childs">
+      <div>
+        <h2>Options</h2>
+      </div>
+      <div>
+        <mat-form-field appearance="outline">
+          <mat-label>Notification Sound</mat-label>
+          <mat-select [value]="selectedSound">
+            <mat-option *ngFor="let sound of availableSounds" [value]="sound" (onSelectionChange)="soundChanged($event)"
+              matTooltip="by {{sound.author}}">
+              {{sound.name}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button class="mx-2" mat-mini-fab color="primary" (click)="notificationSound.play()">
+          <mat-icon>play_arrow</mat-icon>
+        </button>
+      </div>
+      <mat-checkbox color="primary" [(ngModel)]="soundEnabled">Sound Enabled</mat-checkbox>
+      <mat-slider min="0" max="1" step="0.05" (change)="volumeChanged()" [(ngModel)]="soundVolume">Sound Volume</mat-slider>
+    </div>
+  </mat-drawer>
+
+  <mat-drawer-content style="max-width: 450px;">
+
+    <div class="container-fluid">
+      <div class="row">
+        <div>
+          <button class="float-start" mat-icon-button (click)="drawer.toggle()">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <h2 class="pt-1">GongFu Cha Timer</h2>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="d-flex justify-content-center pad-childs">
+          <div>
+            <mat-form-field appearance="outline" style="width: 6rem;">
+              <mat-label>Starting time</mat-label>
+              <input matInput type="number" [min]="5" [step]="5" [(ngModel)]="initialInfusionTime"
+                (change)="timeParamChange($event)">
+            </mat-form-field>
+          </div>
+          <div>
+            <mat-form-field appearance="outline" style="width: 6rem;">
+              <mat-label>Increment</mat-label>
+              <input matInput type="number" [min]="5" [step]="5" [(ngModel)]="brewTimeIncrement"
+                (change)="timeParamChange($event)">
+            </mat-form-field>
+          </div>
+          <div>
+            <mat-form-field appearance="outline" style="max-width: 7rem;">
+              <mat-label>Target Infusions</mat-label>
+              <input matInput placeholder="e.g. 10" [value]="infusionsTarget">
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="d-flex justify-content-center">
+          <div>
+            <h1>{{ time | clockify }}</h1>
+          </div>
+
+          <div class="ms-4">
+            <button class="btn btn-primary mat-raised-button" [disabled]="running"
+              (click)="run($event)"><span>Brew</span></button>
+            <button class="btn btn-secondary mat-raised-button ms-2" [disabled]="!running"
+              (click)="abort($event)"><span>Abort</span></button>
+          </div>
+        </div>
+
+        <div class="row pb-3">
+          <div class="col">
+            <div>Infusions</div>
+            <ngb-progressbar [type]="progressType()" [striped]="running" [animated]="running" [max]="infusionsTarget"
+              [value]="infusions">
+              <b>{{infusions}} of {{infusionsTarget}}</b>
+            </ngb-progressbar>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </mat-drawer-content>
+</mat-drawer-container>
