@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "dockerbuild": "docker build . -t gongfucha",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
