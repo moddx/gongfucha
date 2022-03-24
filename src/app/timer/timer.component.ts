@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { interval, Subscription, zip } from 'rxjs';
+import { Component, HostListener, OnInit } from '@angular/core';
+import { interval, startWith, Subscription, zip } from 'rxjs';
 import {Howl, Howler} from 'howler';
 import { MatOptionSelectionChange } from '@angular/material/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -13,7 +13,7 @@ export class TimerComponent implements OnInit {
   time: number = 0;
   initialInfusionTime = 20;
   brewTimeIncrement: number = 5;
-  lastInfusionTime?: number;
+  lastInfusionTime: number = 0;
 
   infusionsTarget = 8;
   infusions = 0;
@@ -61,7 +61,7 @@ export class TimerComponent implements OnInit {
 
   timeParamChange(event: any) {
     if (this.running) return;
-    if (!this.lastInfusionTime) {
+    if (this.lastInfusionTime <= 0) {
       console.log(`called ${this.initialInfusionTime}`);
       this.time = this.initialInfusionTime;
       return;
@@ -76,6 +76,66 @@ export class TimerComponent implements OnInit {
     this.notificationSound = this.howlOf(event.source.value.path);
   }
 
+  @HostListener('window:keydown.space', ['$event'])
+  handleKeyboardStart(event: KeyboardEvent) {
+    event.preventDefault();
+    if (!this.running) {
+      this.run(event);
+    } else {
+      this.abort(event);
+    }
+  }
+
+  @HostListener('window:keydown.+', ['$event'])
+  handleKbIncrease(event: KeyboardEvent) {
+    event.preventDefault();
+    this.brewTimeIncrement += 5;
+  }
+
+  @HostListener('window:keydown.-', ['$event'])
+  handleKbDecrease(event: KeyboardEvent) {
+    event.preventDefault();
+    this.brewTimeIncrement = Math.max(this.brewTimeIncrement - 5, 5);
+  }
+
+  @HostListener('window:keydown.n', ['$event'])
+  handleKbNext(event: KeyboardEvent) {
+    event.preventDefault();
+    if (this.running) return;
+
+    this.lastInfusionTime = this.currentTime();
+    this.time = this.lastInfusionTime + this.brewTimeIncrement;
+    this.infusions += 1;
+  }
+
+  @HostListener('window:keydown.p', ['$event'])
+  handleKbPrev(event: KeyboardEvent) {
+    event.preventDefault();
+    if (this.running) return;
+
+    if (this.infusions > 0) {
+    this.time = Math.max(this.time - this.brewTimeIncrement, 5);
+    this.infusions = Math.max(this.infusions - 1, 0);
+    this.lastInfusionTime = this.infusions > 0 ? this.time : 0;
+    }
+  }
+
+  @HostListener('window:keydown.ArrowUp', ['$event'])
+  handleKbUp(event: KeyboardEvent) {
+    event.preventDefault();
+
+    this.time += 5;
+    this.lastInfusionTime = this.lastInfusionTime > 0 ? this.lastInfusionTime + 5 : this.initialInfusionTime + 5;
+  }
+
+  @HostListener('window:keydown.ArrowDown', ['$event'])
+  handleKbDown(event: KeyboardEvent) {
+    event.preventDefault();
+
+    this.time = Math.max(this.time - 5, 0);
+    this.lastInfusionTime = this.lastInfusionTime > 0 ? this.lastInfusionTime - 5 : this.initialInfusionTime - 5;
+  }
+
   async run(event: any) {
     if (this.running) return;
 
@@ -85,14 +145,16 @@ export class TimerComponent implements OnInit {
     const currentTime = this.currentTime();
     this.time = currentTime;
 
+    const started = Date.now();
     this.timerSubscription = interval(1000).subscribe((_x) => {
-      if (this.time > 0) {
-        this.time -= 1;
+      const elapsed = Math.floor((Date.now() - started) / 1000);
+      if (elapsed < currentTime) {
+        this.time = currentTime - elapsed;
       } else {
         this.timerSubscription?.unsubscribe();
         this.running = false;
         this.lastInfusionTime = currentTime;
-        this.time = this.lastInfusionTime! + this.brewTimeIncrement;
+        this.time = this.lastInfusionTime + this.brewTimeIncrement;
         if(this.soundEnabled) {
           this.notificationSound.play();
         }
@@ -101,18 +163,18 @@ export class TimerComponent implements OnInit {
     });
   }
 
-  abort(event: any) {
+  abort(event?: any) {
     if (!this.running) return;
 
     this.timerSubscription?.unsubscribe();
     this.running = false;
     this.time = this.currentTime();
-    this.infusions -= 1;
+    this.infusions = Math.max(this.infusions - 1, 0);
     this.notificationSound.stop();
   }
 
   currentTime() {
-    return !this.lastInfusionTime
+    return this.lastInfusionTime <= 0
       ? this.initialInfusionTime
       : this.lastInfusionTime + this.brewTimeIncrement;
   }
@@ -124,8 +186,12 @@ export class TimerComponent implements OnInit {
   }
 
   reset() {
+    this.timerSubscription?.unsubscribe();
+    this.notificationSound?.stop();
+    this.running = false;
+
     this.infusions = 0;
     this.time = this.initialInfusionTime;
-    this.running = false;
+    this.lastInfusionTime = 0;
   }
 }

@@ -20,6 +20,7 @@
       </div>
       <mat-checkbox color="primary" [(ngModel)]="soundEnabled">Sound Enabled</mat-checkbox>
       <mat-slider min="0" max="1" step="0.05" (change)="volumeChanged()" [(ngModel)]="soundVolume">Sound Volume</mat-slider>
+      <button mat-button>Enable Notifications</button>
     </div>
   </mat-drawer>
 
@@ -54,7 +55,7 @@
           <div>
             <mat-form-field appearance="outline" style="max-width: 7rem;">
               <mat-label>Target Infusions</mat-label>
-              <input matInput placeholder="e.g. 10" [value]="infusionsTarget">
+              <input matInput placeholder="e.g. 10" [(ngModel)]="infusionsTarget">
             </mat-form-field>
           </div>
         </div>
@@ -69,8 +70,12 @@
           <div class="ms-4">
             <button class="btn btn-primary mat-raised-button" [disabled]="running"
               (click)="run($event)"><span>Brew</span></button>
-            <button class="btn btn-secondary mat-raised-button ms-2" [disabled]="!running"
-              (click)="abort($event)"><span>Abort</span></button>
+            <!-- <button class="btn btn-secondary mat-raised-button ms-2" [disabled]="!running"
+              (click)="abort($event)"><span>Abort</span></button> -->
+              <button  mat-icon-button class="ms-2" matTooltip="Abort" [disabled]="!running"
+              (click)="abort($event)"><mat-icon>close</mat-icon></button>
+              <button mat-icon-button class="" matTooltip="Reset" [disabled]="infusions <= 0"
+              (click)="reset()"><mat-icon>refresh</mat-icon></button>
           </div>
         </div>
 
