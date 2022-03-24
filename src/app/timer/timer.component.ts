@@ -155,6 +155,7 @@ export class TimerComponent implements OnInit {
         this.running = false;
         this.lastInfusionTime = currentTime;
         this.time = this.lastInfusionTime + this.brewTimeIncrement;
+        this.showReadyNotification();
         if(this.soundEnabled) {
           this.notificationSound.play();
         }
@@ -193,5 +194,30 @@ export class TimerComponent implements OnInit {
     this.infusions = 0;
     this.time = this.initialInfusionTime;
     this.lastInfusionTime = 0;
+  }
+
+  @HostListener('document:visibilitychange', ['$event'])
+  handleVisibilityChange(event: any) {
+    console.log(`VisChange: ${document.visibilityState}`);
+    if (document.visibilityState === 'visible') {
+      this.notifications.forEach(n => n.close());
+      this.notifications = [];
+    }
+  }
+
+  showReadyNotification() {
+    if (Notification.permission === 'granted') {
+      this.notifications.push(new Notification('Tea is ready!', {actions: []}));
+    }
+  }
+
+  notifications: Notification[] = [];
+  notificationsEnabled = false;
+  enableNotifications() {
+    Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
+        this.notificationsEnabled = true;
+      }
+    });
   }
 }

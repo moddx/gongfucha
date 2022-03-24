@@ -1,4 +1,4 @@
-<mat-drawer-container [hasBackdrop]="false" autosize style="background-color: white;">
+<mat-drawer-container autosize style="background-color: white;">
   <mat-drawer #drawer mode="push">
     <div class="pad-childs">
       <div>
@@ -18,9 +18,11 @@
           <mat-icon>play_arrow</mat-icon>
         </button>
       </div>
-      <mat-checkbox color="primary" [(ngModel)]="soundEnabled">Sound Enabled</mat-checkbox>
-      <mat-slider min="0" max="1" step="0.05" (change)="volumeChanged()" [(ngModel)]="soundVolume">Sound Volume</mat-slider>
-      <button mat-button>Enable Notifications</button>
+      <div>
+        <mat-checkbox color="primary" [(ngModel)]="soundEnabled">Sound Enabled</mat-checkbox>
+        <mat-slider min="0" max="1" step="0.05" (change)="volumeChanged()" [(ngModel)]="soundVolume">Sound Volume</mat-slider>
+      </div>
+      <button mat-raised-button (click)="enableNotifications()"><mat-icon>notifications</mat-icon><span>Enable Notifications</span></button>
     </div>
   </mat-drawer>
 
